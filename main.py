@@ -3,6 +3,8 @@ import pyperclip
 import threading
 # import time
 # import keyboard
+from header import Header
+from clip import Clip
 
 # pygame and screen init
 pygame.init()
@@ -10,35 +12,15 @@ pygame.display.set_caption('Clipboard')
 screen = pygame.display.set_mode((350, 585))
 
 # global variables
-dark_mode_icon = pygame.image.load('dark_mode.svg')
-delete_icon = pygame.image.load('delete.svg')
-
-dark_mode_rect = pygame.Rect(5, 5, 24, 24)
-delete_rect = pygame.Rect(321, 5, 24, 24)
-
-dark_mode = True
 txt_color = 'white'
 bg_color = 'black'
 
-def switchDarkMode():
-    global dark_mode
-    global txt_color
-    global bg_color
-    
-    if dark_mode:
-        # switches to light mode
-        txt_color = 'black'
-        bg_color = 'white'
-        dark_mode = False
-    else:
-        # switches to dark mode
-        txt_color = 'white'
-        bg_color = 'black'
-        dark_mode = True
+header = Header(585)
 
 class Clipboard:
     def __init__(self):
         self.board = []
+        self.rect = pygame.Rect(5, 35, 340, 545)
 
     def addToClipboard(self):
         while True:
@@ -75,20 +57,14 @@ class Clipboard:
 
 clipboard = Clipboard()
 
-class Clip:
-    def __init__(self, text):
-        self.text = text
-        self.rect = pygame.Rect((5, 25, 340, 50))
-
-    def insertClip(self, clipboard):
-        clipboard.board.insert(0, self)
-        clipboard.organizeClips()
-
 firstClip = Clip(pyperclip.paste())
 firstClip.insertClip(clipboard)
 
 def drawText(text, x, y):
     txt = pygame.font.SysFont("Helvetica", 16).render(text, True, txt_color)
+    if header.hidden.active:
+        ast_text = '*' * len(text)
+        txt = pygame.font.SysFont("Helvetica", 20).render(ast_text, True, txt_color)
     screen.blit(txt, (x, y), (0, 0, 330, 50))
     screen.blit(txt, (x, y), (330, -22, 330, 50))
 
@@ -106,23 +82,23 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
-        elif event.type == pygame.MOUSEBUTTONDOWN and dark_mode_rect.collidepoint(event.pos):
-            switchDarkMode()
+        elif event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
+            if header.dark_mode.rect.collidepoint(event.pos):
+                txt_color, bg_color = header.dark_mode.switch(txt_color, bg_color)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN and delete_rect.collidepoint(event.pos):
-            clipboard.deleteAll()
+            elif header.delete.rect.collidepoint(event.pos):
+                clipboard.deleteAll()
 
-        elif event.type == pygame.MOUSEBUTTONUP:
-            for clip in clipboard.board:
-                if clip.rect.collidepoint(event.pos):
-                    pyperclip.copy(clip.text)
+            elif header.hidden.rect.collidepoint(event.pos):
+                header.hidden.active = not header.hidden.active
 
-    # dark mode icon
-    pygame.draw.circle(screen, ('white'), (17, 17), 12)
-    screen.blit(dark_mode_icon, (5, 5))
-    # delete icon
-    pygame.draw.circle(screen, ('white'), (333, 17), 12)
-    screen.blit(delete_icon, (delete_rect.x, delete_rect.y))
+            elif clipboard.rect.collidepoint(event.pos):
+                for clip in clipboard.board:
+                    if clip.rect.collidepoint(event.pos):
+                        pyperclip.copy(clip.text)
+
+    pygame.draw.rect(screen, 'black', header.rect)
+    header.update(screen)
 
     pygame.display.flip()
 pygame.quit()
