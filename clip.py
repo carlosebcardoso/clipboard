@@ -8,3 +8,6 @@ class Clip:
     def insertClip(self, clipboard):
         clipboard.board.insert(0, self)
         clipboard.organizeClips()
+
+    def scroll(self, direction):
+        self.rect.y += direction * 10

@@ -1,19 +1,23 @@
 import pygame
 import pyperclip
 import threading
+import os
 # import time
-# import keyboard
+import keyboard
 from header import Header
 from clip import Clip
 
 # pygame and screen init
 pygame.init()
 pygame.display.set_caption('Clipboard')
+pygame.display.set_icon(pygame.image.load('_internal/icons/clipboard.png'))
 screen = pygame.display.set_mode((350, 585))
 
 # global variables
 txt_color = 'white'
 bg_color = 'black'
+
+keyboard.add_hotkey('ctrl+alt+v', os.system, args=['wmctrl -a Clipboard'])
 
 header = Header(585)
 
@@ -83,22 +87,30 @@ while run:
             run = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
-            if header.dark_mode.rect.collidepoint(event.pos):
-                txt_color, bg_color = header.dark_mode.switch(txt_color, bg_color)
+            if header.rect.collidepoint(event.pos):
+                if header.dark_mode.rect.collidepoint(event.pos):
+                    txt_color, bg_color = header.dark_mode.switch(txt_color, bg_color)
 
-            elif header.delete.rect.collidepoint(event.pos):
-                clipboard.deleteAll()
+                elif header.delete.rect.collidepoint(event.pos):
+                    clipboard.deleteAll()
 
-            elif header.hidden.rect.collidepoint(event.pos):
-                header.hidden.active = not header.hidden.active
+                elif header.hidden.rect.collidepoint(event.pos):
+                    header.hidden.active = not header.hidden.active
+                    header.hidden.change_icon()
+
+                elif header.debug.rect.collidepoint(event.pos):
+                    header.debug.fill_clipboard()
 
             elif clipboard.rect.collidepoint(event.pos):
                 for clip in clipboard.board:
                     if clip.rect.collidepoint(event.pos):
                         pyperclip.copy(clip.text)
 
-    pygame.draw.rect(screen, 'black', header.rect)
-    header.update(screen)
+        # elif event.type == pygame.MOUSEWHEEL:
+        #     for clip in clipboard.board:
+        #         clip.scroll(event.y)
+
+    header.update(screen, bg_color)
 
     pygame.display.flip()
 pygame.quit()

@@ -8,9 +8,11 @@ class Header:
         self.dark_mode = DarkMode()
         self.hidden = Hidden()
         self.delete = Delete()
-        self.buttons = [self.dark_mode, self.hidden, self.delete]
+        self.debug = Debug()
+        self.buttons = [self.dark_mode, self.hidden, self.delete, self.debug]
 
-    def update(self, screen):
+    def update(self, screen, bg_color):
+        pygame.draw.rect(screen, bg_color, self.rect)
         for button in self.buttons:
             pygame.draw.circle(screen, ('white'), button.circle, button.radius)
             screen.blit(button.icon, button.rect.topleft) 
